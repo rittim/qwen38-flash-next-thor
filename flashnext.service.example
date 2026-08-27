@@ -1,0 +1,25 @@
+[Unit]
+Description=llama.cpp server (Qwen3.8-Flash-Next UD-Q4_K_XL, ngram spec, n-gram table on NVMe)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/USER/.local/share/flashnext/llama-server-prod \
+  -m /home/USER/models/Qwen3.8-Flash-Next-GGUF/UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf \
+  --alias flashnext \
+  --mmproj /home/USER/models/Qwen3.8-Flash-Next-GGUF/mmproj-Qwen3.8-Flash-Next-F16.gguf \
+  --image-min-tokens 1024 \
+  -lm mmap \
+  -ot per_layer_token_embd=CPU \
+  --n-gpu-layers 999 \
+  --ctx-size 65536 \
+  --parallel 1 \
+  --spec-type ngram-mod \
+  --temp 1.0 --top-p 0.95 --top-k 20 \
+  --host 0.0.0.0 --port 8080
+ExecStartPost=/usr/bin/python3 /home/USER/.local/share/flashnext/warm_table.py /home/USER/models/Qwen3.8-Flash-Next-GGUF/UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
