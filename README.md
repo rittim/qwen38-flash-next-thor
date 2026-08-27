@@ -51,9 +51,14 @@ Serve:
   -lm mmap -ot per_layer_token_embd=CPU \
   --n-gpu-layers 999 --ctx-size 65536 --parallel 1 \
   --spec-type ngram-mod \
+  --jinja \
   --temp 1.0 --top-p 0.95 --top-k 20 \
   --host 0.0.0.0 --port 8080
 ```
+
+`--jinja` matters if you use tools/function calling: without it the reasoning doesn't get
+separated properly on later turns of a tool loop and raw thinking text leaks into the
+visible answer.
 
 After every server start it's worth warming the n-gram table with `warm_table.py` from
 the Spark repo (one sequential read, ~30s, cuts page faults a lot). I run it from
