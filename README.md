@@ -51,6 +51,7 @@ Serve:
   -lm mmap -ot per_layer_token_embd=CPU \
   --n-gpu-layers 999 --ctx-size 65536 --parallel 1 \
   --spec-type ngram-mod \
+  --spec-ngram-mod-n-match 24 --spec-ngram-mod-n-min 48 --spec-ngram-mod-n-max 64 \
   --jinja \
   --temp 1.0 --top-p 0.95 --top-k 20 \
   --host 0.0.0.0 --port 8080
@@ -79,8 +80,13 @@ Notes:
   into small differences
 - prefill is 90-170 tok/s depending on caching. Images cost a one-off 1-2s to encode,
   decode speed is unaffected
-- ngram-mod speculation is free (no draft model) and does a lot on copy/edit-heavy
-  prompts, nothing on prose
+- ngram-mod speculation is free (no draft model). With the tuned span params above
+  (taken from [sxuff's Spark recipe](https://github.com/sxuff/qwen38-flash-next-dgx-spark))
+  I measured 82.9 tok/s on verbatim code reproduction (91% draft acceptance, mean
+  accepted span 59 tokens) on the same box that does ~14 on prose. The catch: it only
+  fires on long untouched spans. Code with a small edit on every line gets ~4%
+  acceptance and no speedup, prose gets nothing. Agent workloads (file ops, JSON
+  echoing) land somewhere in between
 - the 120W power mode costs about 10% vs MAXN
 
 ## Why commit d4a943f and not the branch head
